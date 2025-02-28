@@ -33,6 +33,20 @@ defmodule ByeByeBye.Utils do
     end
   end
 
+  @doc """
+  Builds a GTFS-RT FeedEntity representing a cancelled trip.
+
+  ## Parameters
+    * `{trip_id, schedule}` - A tuple containing:
+      * `trip_id` - The ID of the cancelled trip
+      * `schedule` - List of schedule entries for the trip
+    * `now` - Current timestamp as Unix time in seconds
+
+  ## Returns
+  A `TransitRealtime.FeedEntity` struct with:
+    * The trip marked as CANCELED
+    * All stops marked as SKIPPED
+  """
   def build_cancellation_entity({trip_id, schedule}, now) do
     route_id = schedule |> List.first() |> get_in(["relationships", "route", "data", "id"])
 
