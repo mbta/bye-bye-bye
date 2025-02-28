@@ -102,7 +102,7 @@ defmodule ByeByeBye.MbtaClient do
     params_str = if params = opts[:params], do: " params=\"#{inspect(params)}\"", else: ""
     Logger.debug("Making MBTA API request path=#{path}#{params_str}")
 
-    case Req.get("#{Config.mbta_api_url()}#{path}", request_options(opts)) do
+    case Req.get(Path.join(Config.mbta_api_url(), path), request_options(opts)) do
       {:ok, %{status: 200, body: body}} ->
         Logger.debug(
           "Successful MBTA API response path=#{path} data_count=#{length(body["data"])}"
