@@ -118,25 +118,15 @@ defmodule ByeByeBye.Utils do
   end
 
   defp service_day_times(now) do
-    now = DateTime.shift_zone!(now, "America/New_York")
-    time = DateTime.to_time(now)
+    service_day = service_day(now)
+    start_dt = DateTime.new!(service_day, ~T[03:00:00], "America/New_York")
 
-    if Time.before?(time, ~T[03:00:00]) do
-      {
-        now
-        |> DateTime.add(-1, :day)
-        |> DateTime.to_date()
-        |> DateTime.new!(~T[03:00:00], "America/New_York"),
-        now |> DateTime.to_date() |> DateTime.new!(~T[02:59:59], "America/New_York")
-      }
-    else
-      {
-        DateTime.to_date(now) |> DateTime.new!(~T[03:00:00], "America/New_York"),
-        DateTime.add(now, 1, :day)
-        |> DateTime.to_date()
-        |> DateTime.new!(~T[02:59:59], "America/New_York")
-      }
-    end
+    end_dt =
+      service_day
+      |> Date.add(1)
+      |> DateTime.new!(~T[03:00:00], "America/New_York")
+
+    {start_dt, end_dt}
   end
 
   defp to_gtfs_time_string(datetime) do
