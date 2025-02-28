@@ -37,7 +37,7 @@ defmodule ByeByeBye.MbtaClient do
       iex> MbtaClient.get_schedules(trips: ["123", "456"])
       {:ok, schedules}
 
-      iex> MbtaClient.get_schedules(%{routes: ["Red", "Blue"], min_time: "2024-01-20T10:00:00-05:00"})
+      iex> MbtaClient.get_schedules(%{routes: ["Red", "Blue"], min_time: "10:30"})
       {:ok, schedules}
   """
   def get_schedules(opts) when is_map(opts) do
