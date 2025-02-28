@@ -34,35 +34,35 @@ defmodule ByeByeBye.UtilsTest do
       now = DateTime.new!(~D[2024-01-20], ~T[07:00:00], "America/New_York")
       check_time = DateTime.new!(~D[2024-01-20], ~T[10:00:00], "America/New_York")
 
-      assert Utils.current_service_day?(check_time, fn -> now end)
+      assert Utils.current_service_day?(check_time, now)
     end
 
     test "returns true for early morning times in same service day" do
       now = DateTime.new!(~D[2024-01-20], ~T[07:00:00], "America/New_York")
       check_time = DateTime.new!(~D[2024-01-21], ~T[02:00:00], "America/New_York")
 
-      assert Utils.current_service_day?(check_time, fn -> now end)
+      assert Utils.current_service_day?(check_time, now)
     end
 
     test "returns false for times in previous service day" do
       now = DateTime.new!(~D[2024-01-20], ~T[07:00:00], "America/New_York")
       check_time = DateTime.new!(~D[2024-01-19], ~T[15:00:00], "America/New_York")
 
-      refute Utils.current_service_day?(check_time, fn -> now end)
+      refute Utils.current_service_day?(check_time, now)
     end
 
     test "returns false for times in next service day" do
       now = DateTime.new!(~D[2024-01-20], ~T[07:00:00], "America/New_York")
       check_time = DateTime.new!(~D[2024-01-21], ~T[15:00:00], "America/New_York")
 
-      refute Utils.current_service_day?(check_time, fn -> now end)
+      refute Utils.current_service_day?(check_time, now)
     end
 
     test "handles service day cutoff" do
       now = DateTime.new!(~D[2024-01-20], ~T[02:00:00], "America/New_York")
       same_service_day = DateTime.new!(~D[2024-01-20], ~T[04:00:00], "America/New_York")
 
-      refute Utils.current_service_day?(same_service_day, fn -> now end)
+      refute Utils.current_service_day?(same_service_day, now)
     end
   end
 

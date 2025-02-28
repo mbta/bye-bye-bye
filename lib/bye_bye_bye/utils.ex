@@ -9,11 +9,10 @@ defmodule ByeByeBye.Utils do
   Determines if the given datetime falls within the current service day.
   A service day runs from 3am to 3am the next day.
 
-  Accepts an optional function to get the current time, primarily for testing.
-  The datetime from now_fn should be in UTC and will be converted to Eastern time.
+  The datetime now will be converted to Eastern time if it is not already.
   """
-  def current_service_day?(datetime, now_fn \\ &DateTime.utc_now/0) do
-    now = now_fn.() |> DateTime.shift_zone!("America/New_York")
+  def current_service_day?(datetime, now) do
+    now = now |> DateTime.shift_zone!("America/New_York")
     service_day(datetime) == service_day(now)
   end
 
@@ -148,8 +147,8 @@ defmodule ByeByeBye.Utils do
     {:ok, end_time, _} = DateTime.from_iso8601(active_period["end"])
     end_time = DateTime.shift_zone!(end_time, "America/New_York")
 
-    if current_service_day?(start_time, fn -> now end) or
-         current_service_day?(end_time, fn -> now end) do
+    if current_service_day?(start_time, now) or
+         current_service_day?(end_time, now) do
       {service_day_start_time, service_day_end_time} = service_day_times(now)
 
       start_time =
