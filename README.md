@@ -27,10 +27,19 @@ docker build -t bye_bye_bye .
 Run the container with:
 
 ```bash
-docker run --rm \
+# Run the container without the --rm flag to keep it after completion
+docker run \
   -e MBTA_API_KEY=your_key \
   -e MBTA_API_URL=https://api-v3.mbta.com \
+  --name bye_bye_bye_container \
   bye_bye_bye
+
+# Copy the generated files from the container to your host
+docker cp bye_bye_bye_container:/TripUpdates.json ./
+docker cp bye_bye_bye_container:/TripUpdates.pb ./
+
+# You can remove the container when done
+docker rm bye_bye_bye_container
 ```
 
 To write files to S3, include the S3 bucket and AWS credentials:
