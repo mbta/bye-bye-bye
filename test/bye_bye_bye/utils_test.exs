@@ -29,6 +29,38 @@ defmodule ByeByeBye.UtilsTest do
     end
   end
 
+  describe "period_intersection/2" do
+    test "returns intersection when DateTime periods overlap" do
+      period1 = {~U[2024-01-01T10:00:00Z], ~U[2024-01-01T14:00:00Z]}
+      period2 = {~U[2024-01-01T12:00:00Z], ~U[2024-01-01T16:00:00Z]}
+
+      expected = {~U[2024-01-01T12:00:00Z], ~U[2024-01-01T14:00:00Z]}
+      assert Utils.period_intersection(period1, period2) == expected
+    end
+
+    test "returns nil when DateTime periods do not overlap" do
+      period1 = {~U[2024-01-01T10:00:00Z], ~U[2024-01-01T12:00:00Z]}
+      period2 = {~U[2024-01-01T13:00:00Z], ~U[2024-01-01T15:00:00Z]}
+
+      assert Utils.period_intersection(period1, period2) == nil
+    end
+
+    test "handles adjacent DateTime periods with exact boundary" do
+      period1 = {~U[2024-01-01T10:00:00Z], ~U[2024-01-01T12:00:00Z]}
+      period2 = {~U[2024-01-01T12:00:00Z], ~U[2024-01-01T14:00:00Z]}
+
+      expected = {~U[2024-01-01T12:00:00Z], ~U[2024-01-01T12:00:00Z]}
+      assert Utils.period_intersection(period1, period2) == expected
+    end
+
+    test "handles one DateTime period fully contained in another" do
+      period1 = {~U[2024-01-01T10:00:00Z], ~U[2024-01-01T16:00:00Z]}
+      period2 = {~U[2024-01-01T12:00:00Z], ~U[2024-01-01T14:00:00Z]}
+
+      assert Utils.period_intersection(period1, period2) == period2
+    end
+  end
+
   describe "current_service_day?/2" do
     test "returns true for times in same service day" do
       now = DateTime.new!(~D[2024-01-20], ~T[07:00:00], "America/New_York")

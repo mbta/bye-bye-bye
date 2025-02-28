@@ -117,6 +117,37 @@ defmodule ByeByeBye.Utils do
     |> Enum.reduce(%{}, &Map.merge(&1, &2))
   end
 
+  @doc """
+  Calculates the intersection of two time periods represented as DateTime tuples.
+
+  ## Parameters
+    * `{start1, end1}` - First time period as a tuple of DateTime objects
+    * `{start2, end2}` - Second time period as a tuple of DateTime objects
+
+  ## Returns
+    * `{intersection_start, intersection_end}` - The overlapping period if the periods intersect
+    * `nil` - If the periods do not intersect
+
+  ## Examples
+
+      iex> start1 = ~U[2024-01-01T10:00:00Z]
+      iex> end1 = ~U[2024-01-01T14:00:00Z]
+      iex> start2 = ~U[2024-01-01T12:00:00Z]
+      iex> end2 = ~U[2024-01-01T16:00:00Z]
+      iex> Utils.period_intersection({start1, end1}, {start2, end2})
+      {~U[2024-01-01T12:00:00Z], ~U[2024-01-01T14:00:00Z]}
+  """
+  def period_intersection({start1, end1}, {start2, end2}) do
+    latest_start = max(start1, start2)
+    earliest_end = min(end1, end2)
+
+    if latest_start <= earliest_end do
+      {latest_start, earliest_end}
+    else
+      nil
+    end
+  end
+
   defp service_day_times(now) do
     service_day = service_day(now)
     start_dt = DateTime.new!(service_day, ~T[03:00:00], "America/New_York")
@@ -151,26 +182,17 @@ defmodule ByeByeBye.Utils do
     {:ok, end_time, _} = DateTime.from_iso8601(active_period["end"])
     end_time = DateTime.shift_zone!(end_time, "America/New_York")
 
-    if current_service_day?(start_time, now) or
-         current_service_day?(end_time, now) do
-      {service_day_start_time, service_day_end_time} = service_day_times(now)
+    {service_start_time, service_end_time} = service_day_times(now)
 
-      start_time =
-        if DateTime.before?(start_time, service_day_start_time),
-          do: service_day_start_time,
-          else: start_time
+    case period_intersection({start_time, end_time}, {service_start_time, service_end_time}) do
+      nil ->
+        nil
 
-      end_time =
-        if DateTime.after?(end_time, service_day_end_time),
-          do: service_day_end_time,
-          else: end_time
-
-      %{
-        min_time: to_gtfs_time_string(start_time),
-        max_time: to_gtfs_time_string(end_time)
-      }
-    else
-      nil
+      {start_time, end_time} ->
+        %{
+          min_time: to_gtfs_time_string(start_time),
+          max_time: to_gtfs_time_string(end_time)
+        }
     end
   end
 end
