@@ -74,7 +74,7 @@ defmodule ByeByeBye.MbtaClient do
       true ->
         params =
           opts
-          |> Enum.filter(fn {key, _} -> key in [:min_time, :max_time] end)
+          |> Keyword.take([:min_time, :max_time])
           |> Enum.into(%{})
           |> maybe_add_filter("trip", trips)
           |> maybe_add_filter("route", routes)
