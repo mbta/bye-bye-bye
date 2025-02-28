@@ -5,8 +5,8 @@
 Since 3rd party consumers handle cancelation alerts inconsistently, this
 service monitors our alerts and issues a TripUpdates feed with cancellations
 for any trips that are cancelled by an alert. Concentrate consumes this feed
-ensuring that 3rd parties, especially trip planners, don't rely on these
-cancelled trips.
+ensuring that 3rd parties, especially trip planners, generate plans using
+these cancelled trips.
 
 ## Building
 
