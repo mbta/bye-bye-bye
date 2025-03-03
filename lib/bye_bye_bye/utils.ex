@@ -138,10 +138,10 @@ defmodule ByeByeBye.Utils do
       {~U[2024-01-01T12:00:00Z], ~U[2024-01-01T14:00:00Z]}
   """
   def period_intersection({start1, end1}, {start2, end2}) do
-    latest_start = max(start1, start2)
-    earliest_end = min(end1, end2)
+    latest_start = Enum.max([start1, start2], DateTime)
+    earliest_end = Enum.min([end1, end2], DateTime)
 
-    if latest_start <= earliest_end do
+    if DateTime.compare(latest_start, earliest_end) in [:lt, :eq] do
       {latest_start, earliest_end}
     else
       nil
