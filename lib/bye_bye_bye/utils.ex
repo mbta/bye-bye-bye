@@ -155,7 +155,7 @@ defmodule ByeByeBye.Utils do
     end_dt =
       service_day
       |> Date.add(1)
-      |> DateTime.new!(~T[03:00:00], "America/New_York")
+      |> DateTime.new!(~T[02:59:59], "America/New_York")
 
     {start_dt, end_dt}
   end
