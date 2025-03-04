@@ -8,24 +8,32 @@ defmodule ByeByeBye do
 
   @cancellation_effects ["NO_SERVICE", "CANCELLATION"]
 
+  @doc """
+  Filters alerts to include only those with cancellation effects.
+
+  ## Parameters
+    * `alerts` - List of alert maps from the MBTA API
+
+  ## Returns
+    A filtered list containing only the cancellation alerts
+  """
+  def get_cancellations(alerts) do
+    cancellations = Enum.filter(alerts, &(&1["attributes"]["effect"] in @cancellation_effects))
+    Logger.info("Found #{length(cancellations)} cancellations")
+    cancellations
+  end
+
   def main(_args) do
     Logger.info("Starting ByeByeBye service")
 
     case MbtaClient.get_alerts() do
       {:ok, alerts} ->
-        num_cancellations =
-          Enum.count(alerts, &(&1["attributes"]["effect"] in @cancellation_effects))
-
-        Logger.info(
-          "Processing alerts total_alerts=#{length(alerts)} cancellation_alerts=#{num_cancellations}"
-        )
-
         now = DateTime.utc_now()
         now_unix = DateTime.to_unix(now)
 
         entities =
           alerts
-          |> Enum.filter(&(&1["attributes"]["effect"] in @cancellation_effects))
+          |> get_cancellations()
           |> Enum.map(&Utils.get_affected_schedules(&1, now))
           |> Enum.reduce(%{}, &Map.merge(&1, &2))
           |> tap(fn schedules ->
