@@ -12,10 +12,11 @@ on:
 
 jobs:
   call-workflow:
-    uses: mbta/workflows/.github/workflows/deploy-ecs.yml@v2
+    uses: mbta/workflows/.github/workflows/deploy-ecs.yml@v4
     with:
       app-name: bye-bye-bye
       environment: ${{ github.event.inputs.environment || 'dev' }}
+      allow-zero-desired: true
     secrets:
       aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
       docker-repo: ${{ secrets.DOCKER_REPO }}
