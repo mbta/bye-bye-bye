@@ -40,7 +40,7 @@ defmodule ByeByeBye.Utils do
     * `{trip_id, schedule}` - A tuple containing:
       * `trip_id` - The ID of the cancelled trip
       * `schedule` - List of schedule entries for the trip
-    * `now` - Current timestamp as Unix time in seconds
+    * `now` - Current timestamp as DateTime
 
   ## Returns
   A `TransitRealtime.FeedEntity` struct with:
@@ -53,11 +53,12 @@ defmodule ByeByeBye.Utils do
     %FeedEntity{
       id: trip_id,
       trip_update: %TripUpdate{
-        timestamp: now,
+        timestamp: DateTime.to_unix(now),
         trip: %TripDescriptor{
           trip_id: trip_id,
           route_id: route_id,
-          schedule_relationship: "CANCELED"
+          schedule_relationship: "CANCELED",
+          start_date: Calendar.strftime(now, "%Y%m%d")
         },
         stop_time_update: Enum.map(schedule, &schedule_to_stop_time_update/1)
       }

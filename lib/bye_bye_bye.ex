@@ -39,7 +39,7 @@ defmodule ByeByeBye do
           |> tap(fn schedules ->
             Logger.info("Generated cancellation entities affected_trips=#{map_size(schedules)}")
           end)
-          |> Enum.map(&Utils.build_cancellation_entity(&1, now_unix))
+          |> Enum.map(&Utils.build_cancellation_entity(&1, now))
 
         message = %FeedMessage{
           header: %FeedHeader{
