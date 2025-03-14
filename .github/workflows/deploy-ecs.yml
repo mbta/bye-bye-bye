@@ -16,8 +16,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    environment: ${{ inputs.environment }}
-    concurrency: ${{ inputs.environment }}
+    environment: ${{ inputs.environment || 'dev' }}
+    concurrency: ${{ inputs.environment || 'dev' }}
     steps:
       - uses: actions/checkout@v4
       - uses: mbta/actions/build-push-ecr@v2
@@ -29,8 +29,8 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           ecs-cluster: bye-bye-bye
-          ecs-service: bye-bye-bye-${{ inputs.environment }}
-          ecs-task-definition: bye-bye-bye-${{ inputs.environment }}
+          ecs-service: bye-bye-bye-${{ inputs.environment || 'dev' }}
+          ecs-task-definition: bye-bye-bye-${{ inputs.environment || 'dev' }}
           docker-tag: ${{ steps.build-push.outputs.docker-tag }}
       - uses: mbta/actions/notify-slack-deploy@v2
         if: ${{ !cancelled() }}
