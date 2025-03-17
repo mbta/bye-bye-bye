@@ -102,6 +102,7 @@ defmodule ByeByeBye.UtilsTest do
     test "creates a feed entity with proper cancellation details" do
       trip_id = "123"
       now = ~U[2024-01-23 08:53:20Z]
+      start_date = Calendar.strftime(now, "%Y%m%d")
 
       schedule = [
         %{
@@ -132,7 +133,7 @@ defmodule ByeByeBye.UtilsTest do
                    trip_id: "123",
                    route_id: "Red",
                    schedule_relationship: "CANCELED",
-                   start_date: "20240123"
+                   start_date: ^start_date
                  },
                  stop_time_update: [
                    %StopTimeUpdate{
