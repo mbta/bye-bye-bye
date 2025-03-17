@@ -101,7 +101,8 @@ defmodule ByeByeBye.UtilsTest do
   describe "build_cancellation_entity/2" do
     test "creates a feed entity with proper cancellation details" do
       trip_id = "123"
-      now = 1_706_000_000
+      now = ~U[2024-01-23 08:53:20Z]
+      start_date = Calendar.strftime(now, "%Y%m%d")
 
       schedule = [
         %{
@@ -131,7 +132,8 @@ defmodule ByeByeBye.UtilsTest do
                  trip: %TripDescriptor{
                    trip_id: "123",
                    route_id: "Red",
-                   schedule_relationship: "CANCELED"
+                   schedule_relationship: "CANCELED",
+                   start_date: ^start_date
                  },
                  stop_time_update: [
                    %StopTimeUpdate{
