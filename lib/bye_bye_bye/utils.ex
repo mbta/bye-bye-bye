@@ -180,10 +180,15 @@ defmodule ByeByeBye.Utils do
     {:ok, start_time, _} = DateTime.from_iso8601(active_period["start"])
     start_time = DateTime.shift_zone!(start_time, "America/New_York")
 
-    {:ok, end_time, _} = DateTime.from_iso8601(active_period["end"])
-    end_time = DateTime.shift_zone!(end_time, "America/New_York")
+    end_time =
+      if active_period["end"] do
+        {:ok, end_time, _} = DateTime.from_iso8601(active_period["end"])
+        DateTime.shift_zone!(end_time, "America/New_York")
+      end
 
     {service_start_time, service_end_time} = service_day_times(now)
+
+    end_time = end_time || service_end_time
 
     case period_intersection({start_time, end_time}, {service_start_time, service_end_time}) do
       nil ->
