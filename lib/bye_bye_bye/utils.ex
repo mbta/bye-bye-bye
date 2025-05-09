@@ -149,6 +149,40 @@ defmodule ByeByeBye.Utils do
     end
   end
 
+  @doc """
+  Recursively converts a Protox-generated struct to a plain Elixir map.
+
+  This function removes Protox-specific fields (like `__uf__`) and converts
+  all nested Protox structs to maps as well.
+
+  ## Parameters
+    * `struct` - A Protox-generated struct to convert
+
+  ## Returns
+    * A plain Elixir map with all nested Protox structs also converted to maps
+    * For lists, each element is recursively converted
+    * Non-struct values are returned unchanged
+
+  ## Examples
+      iex> protox_struct_to_map(%TransitRealtime.FeedEntity{id: "123", trip_update: %TransitRealtime.TripUpdate{}})
+      %{id: "123", trip_update: %{...}}
+  """
+  def protox_struct_to_map(%_type{} = struct) do
+    struct
+    |> Map.from_struct()
+    |> Map.delete(:__uf__)
+    |> Enum.map(fn {k, v} -> {k, protox_struct_to_map(v)} end)
+    |> Enum.into(%{})
+  end
+
+  def protox_struct_to_map(list) when is_list(list) do
+    Enum.map(list, &protox_struct_to_map/1)
+  end
+
+  def protox_struct_to_map(other) do
+    other
+  end
+
   defp service_day_times(now) do
     service_day = service_day(now)
     start_dt = DateTime.new!(service_day, ~T[03:00:00], "America/New_York")

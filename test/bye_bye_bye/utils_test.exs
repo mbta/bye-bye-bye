@@ -263,4 +263,103 @@ defmodule ByeByeBye.UtilsTest do
       assert result == %{}
     end
   end
+
+  describe "protox_struct_to_map/1" do
+    test "converts a simple Protox struct to a map" do
+      struct = %FeedEntity{
+        id: "test_id",
+        is_deleted: false
+      }
+
+      result = Utils.protox_struct_to_map(struct)
+
+      assert is_map(result)
+      refute is_struct(result)
+
+      assert result.id == "test_id"
+      assert result.is_deleted == false
+
+      refute Map.has_key?(result, :__uf__)
+    end
+
+    test "recursively converts nested Protox structs" do
+      struct = %FeedEntity{
+        id: "test_id",
+        trip_update: %TripUpdate{
+          trip: %TripDescriptor{
+            trip_id: "trip_123",
+            route_id: "route_456",
+            schedule_relationship: "CANCELED"
+          },
+          stop_time_update: [
+            %StopTimeUpdate{
+              stop_id: "stop_1",
+              stop_sequence: 1,
+              schedule_relationship: "SKIPPED"
+            }
+          ]
+        }
+      }
+
+      result = Utils.protox_struct_to_map(struct)
+
+      assert is_map(result)
+      refute is_struct(result)
+
+      assert is_map(result.trip_update)
+      refute is_struct(result.trip_update)
+
+      assert is_map(result.trip_update.trip)
+      refute is_struct(result.trip_update.trip)
+
+      assert is_list(result.trip_update.stop_time_update)
+      assert length(result.trip_update.stop_time_update) == 1
+      assert is_map(hd(result.trip_update.stop_time_update))
+      refute is_struct(hd(result.trip_update.stop_time_update))
+
+      assert result.id == "test_id"
+      assert result.trip_update.trip.trip_id == "trip_123"
+      assert result.trip_update.trip.route_id == "route_456"
+      assert hd(result.trip_update.stop_time_update).stop_id == "stop_1"
+    end
+
+    test "returns non-struct values unchanged" do
+      assert Utils.protox_struct_to_map("string") == "string"
+      assert Utils.protox_struct_to_map(123) == 123
+      assert Utils.protox_struct_to_map([1, 2, 3]) == [1, 2, 3]
+      assert Utils.protox_struct_to_map(%{a: 1, b: 2}) == %{a: 1, b: 2}
+      assert Utils.protox_struct_to_map(nil) == nil
+    end
+
+    test "converts lists of Protox structs" do
+      structs = [
+        %StopTimeUpdate{
+          stop_id: "stop_1",
+          stop_sequence: 1,
+          schedule_relationship: "SKIPPED"
+        },
+        %StopTimeUpdate{
+          stop_id: "stop_2",
+          stop_sequence: 2,
+          schedule_relationship: "SKIPPED"
+        }
+      ]
+
+      result = Utils.protox_struct_to_map(structs)
+
+      assert is_list(result)
+      assert length(result) == 2
+
+      Enum.each(result, fn item ->
+        assert is_map(item)
+        refute is_struct(item)
+        refute Map.has_key?(item, :__uf__)
+      end)
+
+      assert Enum.at(result, 0).stop_id == "stop_1"
+      assert Enum.at(result, 0).stop_sequence == 1
+      assert Enum.at(result, 1).stop_id == "stop_2"
+      assert Enum.at(result, 1).stop_sequence == 2
+    end
+  end
 end
