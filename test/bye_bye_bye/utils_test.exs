@@ -262,6 +262,49 @@ defmodule ByeByeBye.UtilsTest do
       result = Utils.get_affected_schedules(alert, now)
       assert result == %{}
     end
+
+    test "processes alert with no end time in active period" do
+      now = DateTime.new!(~D[2024-01-20], ~T[12:00:00], "America/New_York")
+
+      alert = %{
+        "attributes" => %{
+          "active_period" => [
+            %{
+              "start" => "2024-01-20T13:00:00-05:00"
+              # No end time specified
+            }
+          ],
+          "informed_entity" => [
+            %{"trip" => "123", "stop" => nil}
+          ]
+        }
+      }
+
+      Req.Test.stub(:mbta_api, fn conn ->
+        assert conn.request_path == "/schedules"
+        assert conn.params["trip"] == "123"
+        assert conn.params["min_time"] == "13:00:00"
+        # Should use end of service day (02:59:59 next day) as the max time
+        assert conn.params["max_time"] == "26:59:59"
+
+        Req.Test.json(conn, %{
+          "data" => [
+            %{
+              "attributes" => %{"stop_sequence" => 1},
+              "relationships" => %{
+                "trip" => %{"data" => %{"id" => "123"}},
+                "route" => %{"data" => %{"id" => "Red"}},
+                "stop" => %{"data" => %{"id" => "stop-1"}}
+              }
+            }
+          ]
+        })
+      end)
+
+      result = Utils.get_affected_schedules(alert, now)
+      assert map_size(result) == 1
+      assert Map.has_key?(result, "123")
+    end
   end
 
   describe "protox_struct_to_map/1" do
