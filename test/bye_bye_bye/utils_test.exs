@@ -6,6 +6,8 @@ defmodule ByeByeBye.UtilsTest do
   alias TransitRealtime.TripDescriptor
   alias TransitRealtime.TripUpdate.StopTimeUpdate
 
+  doctest ByeByeBye.Utils
+
   setup do
     Application.put_env(:bye_bye_bye, :mbta_api_url, "http://api-mock-url")
     Application.put_env(:bye_bye_bye, :mbta_api_key, "test_api_key")

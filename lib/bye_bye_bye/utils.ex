@@ -164,8 +164,24 @@ defmodule ByeByeBye.Utils do
     * Non-struct values are returned unchanged
 
   ## Examples
-      iex> protox_struct_to_map(%TransitRealtime.FeedEntity{id: "123", trip_update: %TransitRealtime.TripUpdate{}})
-      %{id: "123", trip_update: %{...}}
+      iex> ByeByeBye.Utils.protox_struct_to_map(%TransitRealtime.FeedEntity{id: "123", trip_update: %TransitRealtime.TripUpdate{}})
+      %{
+        id: "123",
+        trip_update: %{
+          delay: nil,
+          stop_time_update: [],
+          timestamp: nil,
+          trip: nil,
+          trip_properties: nil,
+          vehicle: nil
+        },
+        alert: nil,
+        is_deleted: nil,
+        shape: nil,
+        stop: nil,
+        trip_modifications: nil,
+        vehicle: nil
+      }
   """
   def protox_struct_to_map(%_type{} = struct) do
     struct
