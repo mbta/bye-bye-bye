@@ -318,11 +318,9 @@ defmodule ByeByeBye.UtilsTest do
 
       result = Utils.protox_struct_to_map(struct)
 
-      assert is_map(result)
       refute is_struct(result)
 
-      assert result.id == "test_id"
-      assert result.is_deleted == false
+      assert %{id: "test_id", is_deleted: false} = result
 
       refute Map.has_key?(result, :__uf__)
     end
@@ -348,24 +346,26 @@ defmodule ByeByeBye.UtilsTest do
 
       result = Utils.protox_struct_to_map(struct)
 
-      assert is_map(result)
       refute is_struct(result)
-
-      assert is_map(result.trip_update)
       refute is_struct(result.trip_update)
-
-      assert is_map(result.trip_update.trip)
       refute is_struct(result.trip_update.trip)
+      refute is_struct(hd(result.trip_update.stop_time_update))
 
       assert is_list(result.trip_update.stop_time_update)
       assert length(result.trip_update.stop_time_update) == 1
       assert is_map(hd(result.trip_update.stop_time_update))
-      refute is_struct(hd(result.trip_update.stop_time_update))
-
       assert result.id == "test_id"
       assert result.trip_update.trip.trip_id == "trip_123"
       assert result.trip_update.trip.route_id == "route_456"
       assert hd(result.trip_update.stop_time_update).stop_id == "stop_1"
+
+      assert %{
+               id: "test_id",
+               trip_update: %{
+                 trip: %{trip_id: "trip_123"},
+                 stop_time_update: [%{stop_id: "stop_1"}]
+               }
+             } = result
     end
 
     test "returns non-struct values unchanged" do
@@ -392,19 +392,13 @@ defmodule ByeByeBye.UtilsTest do
 
       result = Utils.protox_struct_to_map(structs)
 
-      assert is_list(result)
-      assert length(result) == 2
-
       Enum.each(result, fn item ->
-        assert is_map(item)
         refute is_struct(item)
         refute Map.has_key?(item, :__uf__)
       end)
 
-      assert Enum.at(result, 0).stop_id == "stop_1"
-      assert Enum.at(result, 0).stop_sequence == 1
-      assert Enum.at(result, 1).stop_id == "stop_2"
-      assert Enum.at(result, 1).stop_sequence == 2
+      assert [%{stop_id: "stop_1", stop_sequence: 1}, %{stop_id: "stop_2", stop_sequence: 2}] =
+               result
     end
   end
 end
