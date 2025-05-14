@@ -6,6 +6,8 @@ defmodule ByeByeBye.UtilsTest do
   alias TransitRealtime.TripDescriptor
   alias TransitRealtime.TripUpdate.StopTimeUpdate
 
+  doctest ByeByeBye.Utils
+
   setup do
     Application.put_env(:bye_bye_bye, :mbta_api_url, "http://api-mock-url")
     Application.put_env(:bye_bye_bye, :mbta_api_key, "test_api_key")
@@ -261,6 +263,142 @@ defmodule ByeByeBye.UtilsTest do
 
       result = Utils.get_affected_schedules(alert, now)
       assert result == %{}
+    end
+
+    test "processes alert with no end time in active period" do
+      now = DateTime.new!(~D[2024-01-20], ~T[12:00:00], "America/New_York")
+
+      alert = %{
+        "attributes" => %{
+          "active_period" => [
+            %{
+              "start" => "2024-01-20T13:00:00-05:00"
+              # No end time specified
+            }
+          ],
+          "informed_entity" => [
+            %{"trip" => "123", "stop" => nil}
+          ]
+        }
+      }
+
+      Req.Test.stub(:mbta_api, fn conn ->
+        assert conn.request_path == "/schedules"
+        assert conn.params["trip"] == "123"
+        assert conn.params["min_time"] == "13:00:00"
+        # Should use end of service day (02:59:59 next day) as the max time
+        assert conn.params["max_time"] == "26:59:59"
+
+        Req.Test.json(conn, %{
+          "data" => [
+            %{
+              "attributes" => %{"stop_sequence" => 1},
+              "relationships" => %{
+                "trip" => %{"data" => %{"id" => "123"}},
+                "route" => %{"data" => %{"id" => "Red"}},
+                "stop" => %{"data" => %{"id" => "stop-1"}}
+              }
+            }
+          ]
+        })
+      end)
+
+      result = Utils.get_affected_schedules(alert, now)
+      assert map_size(result) == 1
+      assert Map.has_key?(result, "123")
+    end
+  end
+
+  describe "protox_struct_to_map/1" do
+    test "converts a simple Protox struct to a map" do
+      struct = %FeedEntity{
+        id: "test_id",
+        is_deleted: false
+      }
+
+      result = Utils.protox_struct_to_map(struct)
+
+      refute is_struct(result)
+
+      assert %{id: "test_id", is_deleted: false} = result
+
+      refute Map.has_key?(result, :__uf__)
+    end
+
+    test "recursively converts nested Protox structs" do
+      struct = %FeedEntity{
+        id: "test_id",
+        trip_update: %TripUpdate{
+          trip: %TripDescriptor{
+            trip_id: "trip_123",
+            route_id: "route_456",
+            schedule_relationship: "CANCELED"
+          },
+          stop_time_update: [
+            %StopTimeUpdate{
+              stop_id: "stop_1",
+              stop_sequence: 1,
+              schedule_relationship: "SKIPPED"
+            }
+          ]
+        }
+      }
+
+      result = Utils.protox_struct_to_map(struct)
+
+      refute is_struct(result)
+      refute is_struct(result.trip_update)
+      refute is_struct(result.trip_update.trip)
+      refute is_struct(hd(result.trip_update.stop_time_update))
+
+      assert is_list(result.trip_update.stop_time_update)
+      assert length(result.trip_update.stop_time_update) == 1
+      assert is_map(hd(result.trip_update.stop_time_update))
+      assert result.id == "test_id"
+      assert result.trip_update.trip.trip_id == "trip_123"
+      assert result.trip_update.trip.route_id == "route_456"
+      assert hd(result.trip_update.stop_time_update).stop_id == "stop_1"
+
+      assert %{
+               id: "test_id",
+               trip_update: %{
+                 trip: %{trip_id: "trip_123"},
+                 stop_time_update: [%{stop_id: "stop_1"}]
+               }
+             } = result
+    end
+
+    test "returns non-struct values unchanged" do
+      assert Utils.protox_struct_to_map("string") == "string"
+      assert Utils.protox_struct_to_map(123) == 123
+      assert Utils.protox_struct_to_map([1, 2, 3]) == [1, 2, 3]
+      assert Utils.protox_struct_to_map(%{a: 1, b: 2}) == %{a: 1, b: 2}
+      assert Utils.protox_struct_to_map(nil) == nil
+    end
+
+    test "converts lists of Protox structs" do
+      structs = [
+        %StopTimeUpdate{
+          stop_id: "stop_1",
+          stop_sequence: 1,
+          schedule_relationship: "SKIPPED"
+        },
+        %StopTimeUpdate{
+          stop_id: "stop_2",
+          stop_sequence: 2,
+          schedule_relationship: "SKIPPED"
+        }
+      ]
+
+      result = Utils.protox_struct_to_map(structs)
+
+      Enum.each(result, fn item ->
+        refute is_struct(item)
+        refute Map.has_key?(item, :__uf__)
+      end)
+
+      assert [%{stop_id: "stop_1", stop_sequence: 1}, %{stop_id: "stop_2", stop_sequence: 2}] =
+               result
     end
   end
 end

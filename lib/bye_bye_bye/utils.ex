@@ -149,6 +149,56 @@ defmodule ByeByeBye.Utils do
     end
   end
 
+  @doc """
+  Recursively converts a Protox-generated struct to a plain Elixir map.
+
+  This function removes Protox-specific fields (like `__uf__`) and converts
+  all nested Protox structs to maps as well.
+
+  ## Parameters
+    * `struct` - A Protox-generated struct to convert
+
+  ## Returns
+    * A plain Elixir map with all nested Protox structs also converted to maps
+    * For lists, each element is recursively converted
+    * Non-struct values are returned unchanged
+
+  ## Examples
+      iex> ByeByeBye.Utils.protox_struct_to_map(%TransitRealtime.FeedEntity{id: "123", trip_update: %TransitRealtime.TripUpdate{}})
+      %{
+        id: "123",
+        trip_update: %{
+          delay: nil,
+          stop_time_update: [],
+          timestamp: nil,
+          trip: nil,
+          trip_properties: nil,
+          vehicle: nil
+        },
+        alert: nil,
+        is_deleted: nil,
+        shape: nil,
+        stop: nil,
+        trip_modifications: nil,
+        vehicle: nil
+      }
+  """
+  def protox_struct_to_map(%_type{} = struct) do
+    struct
+    |> Map.from_struct()
+    |> Map.delete(:__uf__)
+    |> Enum.map(fn {k, v} -> {k, protox_struct_to_map(v)} end)
+    |> Enum.into(%{})
+  end
+
+  def protox_struct_to_map(list) when is_list(list) do
+    Enum.map(list, &protox_struct_to_map/1)
+  end
+
+  def protox_struct_to_map(other) do
+    other
+  end
+
   defp service_day_times(now) do
     service_day = service_day(now)
     start_dt = DateTime.new!(service_day, ~T[03:00:00], "America/New_York")
@@ -180,10 +230,15 @@ defmodule ByeByeBye.Utils do
     {:ok, start_time, _} = DateTime.from_iso8601(active_period["start"])
     start_time = DateTime.shift_zone!(start_time, "America/New_York")
 
-    {:ok, end_time, _} = DateTime.from_iso8601(active_period["end"])
-    end_time = DateTime.shift_zone!(end_time, "America/New_York")
+    end_time =
+      if active_period["end"] do
+        {:ok, end_time, _} = DateTime.from_iso8601(active_period["end"])
+        DateTime.shift_zone!(end_time, "America/New_York")
+      end
 
     {service_start_time, service_end_time} = service_day_times(now)
+
+    end_time = end_time || service_end_time
 
     case period_intersection({start_time, end_time}, {service_start_time, service_end_time}) do
       nil ->
