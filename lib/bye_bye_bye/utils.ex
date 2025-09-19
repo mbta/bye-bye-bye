@@ -50,6 +50,8 @@ defmodule ByeByeBye.Utils do
   def build_cancellation_entity({trip_id, schedule}, now) do
     route_id = schedule |> List.first() |> get_in(["relationships", "route", "data", "id"])
 
+    start_date = now |> service_day() |> Calendar.strftime("%Y%m%d")
+
     %FeedEntity{
       id: trip_id,
       trip_update: %TripUpdate{
@@ -58,7 +60,7 @@ defmodule ByeByeBye.Utils do
           trip_id: trip_id,
           route_id: route_id,
           schedule_relationship: "CANCELED",
-          start_date: Calendar.strftime(now, "%Y%m%d")
+          start_date: start_date
         },
         stop_time_update: Enum.map(schedule, &schedule_to_stop_time_update/1)
       }

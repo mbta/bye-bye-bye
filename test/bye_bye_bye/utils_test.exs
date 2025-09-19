@@ -152,6 +152,24 @@ defmodule ByeByeBye.UtilsTest do
                }
              } = result
     end
+
+    test "start_date accounts for time zone, midnight-3 am as previous day's schedule" do
+      trip_id = "123"
+      # 2:53 AM in America/New_York
+      now = ~U[2024-01-24 07:53:20Z]
+
+      schedule = []
+
+      result = Utils.build_cancellation_entity({trip_id, schedule}, now)
+
+      assert %FeedEntity{
+               trip_update: %TripUpdate{
+                 trip: %TripDescriptor{
+                   start_date: "20240123"
+                 }
+               }
+             } = result
+    end
   end
 
   describe "get_affected_schedules/2" do
