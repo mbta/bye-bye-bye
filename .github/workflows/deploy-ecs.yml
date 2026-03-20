@@ -25,6 +25,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           docker-repo: ${{ secrets.DOCKER_REPO }}
+          docker-additional-tags: ${{ inputs.environment || 'dev' }}
       - uses: mbta/actions/deploy-scheduled-ecs@v2
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
