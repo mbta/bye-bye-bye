@@ -10,30 +10,40 @@ on:
   push:
     branches: ["main"]
 
+permissions:
+  contents: read # Needed to check out code
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
+    name: Deploy
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
+      id-token: write # Needed to communicate with AWS
       contents: read
     environment: ${{ inputs.environment || 'dev' }}
     concurrency: ${{ inputs.environment || 'dev' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: mbta/actions/build-push-ecr@v2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: mbta/actions/build-push-ecr@2c88be6542aa1b129d6a273cae070af9b1e7c076 # v2.22
         id: build-push
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           docker-repo: ${{ secrets.DOCKER_REPO }}
           docker-additional-tags: ${{ inputs.environment || 'dev' }}
-      - uses: mbta/actions/deploy-scheduled-ecs@v2
+      - uses: mbta/actions/deploy-scheduled-ecs@2c88be6542aa1b129d6a273cae070af9b1e7c076 # v2.22
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           ecs-cluster: bye-bye-bye
           ecs-service: bye-bye-bye-${{ inputs.environment || 'dev' }}
           ecs-task-definition: bye-bye-bye-${{ inputs.environment || 'dev' }}
           docker-tag: ${{ steps.build-push.outputs.docker-tag }}
-      - uses: mbta/actions/notify-slack-deploy@v2
+      - uses: mbta/actions/notify-slack-deploy@2c88be6542aa1b129d6a273cae070af9b1e7c076 # v2.22
         if: ${{ !cancelled() }}
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK }}
