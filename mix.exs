@@ -5,7 +5,7 @@ defmodule ByeByeBye.MixProject do
     [
       app: :bye_bye_bye,
       version: "0.1.0",
-      elixir: "~> 1.18",
+      elixir: "~> 1.20",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       escript: [main_module: ByeByeBye]
