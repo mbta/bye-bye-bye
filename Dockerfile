@@ -1,5 +1,5 @@
 # Build stage
-FROM hexpm/elixir:1.20.2-erlang-29.0.3-alpine-3.19.7 AS builder
+FROM hexpm/elixir:1.20.2-erlang-29.0.3-alpine-3.24.1 AS builder
 RUN apk add --no-cache protobuf
 WORKDIR /app
 
@@ -16,7 +16,7 @@ RUN mix compile && \
     mix escript.build
 
 #Runtime stage
-FROM hexpm/elixir:1.20.2-erlang-29.0.3-alpine-3.19.7
+FROM hexpm/elixir:1.20.2-erlang-29.0.3-alpine-3.24.1
 
 
 
