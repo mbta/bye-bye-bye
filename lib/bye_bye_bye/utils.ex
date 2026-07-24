@@ -1,4 +1,5 @@
 defmodule ByeByeBye.Utils do
+  require Logger
   alias ByeByeBye.MbtaClient
   alias TransitRealtime.FeedEntity
   alias TransitRealtime.TripUpdate
@@ -84,6 +85,8 @@ defmodule ByeByeBye.Utils do
     * `now` - Current time as DateTime, used to determine service day
   """
   def get_affected_schedules(alert, now) do
+    alert_id = alert["id"]
+
     period_params =
       alert["attributes"]["active_period"]
       |> Enum.map(&period_params(&1, now))
@@ -92,7 +95,10 @@ defmodule ByeByeBye.Utils do
     trips =
       alert["attributes"]["informed_entity"]
       |> Enum.filter(fn entity -> !entity["stop"] && entity["trip"] end)
-      |> Enum.map(& &1["trip"])
+      |> Enum.map(fn %{"trip" => trip} ->
+        Logger.info("trip #{trip} affected by alert #{alert_id}")
+        trip
+      end)
       |> then(fn trips ->
         case trips do
           [] -> []
@@ -103,7 +109,10 @@ defmodule ByeByeBye.Utils do
     routes =
       alert["attributes"]["informed_entity"]
       |> Enum.filter(fn entity -> !entity["stop"] && !entity["trip"] && entity["route"] end)
-      |> Enum.map(& &1["route"])
+      |> Enum.map(fn %{"route" => route} ->
+        Logger.info("route #{route} affected by alert #{alert_id}")
+        route
+      end)
       |> then(fn routes ->
         case routes do
           [] -> []
