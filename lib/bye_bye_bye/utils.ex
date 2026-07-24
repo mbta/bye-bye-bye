@@ -122,6 +122,8 @@ defmodule ByeByeBye.Utils do
 
     params = trips ++ routes
 
+    if params == [], do: Logger.warning("no affected trips or routes for alert #{alert_id}")
+
     params
     |> Enum.flat_map(&Enum.map(period_params, fn params -> Map.merge(params, &1) end))
     |> Enum.map(&MbtaClient.get_schedules/1)
