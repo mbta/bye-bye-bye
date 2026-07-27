@@ -95,40 +95,25 @@ defmodule ByeByeBye.Utils do
     trips =
       alert["attributes"]["informed_entity"]
       |> Enum.filter(fn entity -> !entity["stop"] && entity["trip"] end)
-      |> Enum.map(fn %{"trip" => trip_id} ->
-        Logger.info("affected_trip trip_id=#{trip_id} alert_id=#{alert_id}")
-        trip_id
-      end)
-      |> then(fn trips ->
-        case trips do
-          [] -> []
-          _ -> [%{trips: trips}]
-        end
-      end)
+      |> Enum.map(fn %{"trip" => trip_id} -> trip_id end)
 
     routes =
       alert["attributes"]["informed_entity"]
       |> Enum.filter(fn entity -> !entity["stop"] && !entity["trip"] && entity["route"] end)
-      |> Enum.map(fn %{"route" => route_id} ->
-        Logger.info("affected_route route_id=#{route_id} alert_id=#{alert_id}")
-        route_id
-      end)
-      |> then(fn routes ->
-        case routes do
-          [] -> []
-          _ -> [%{routes: routes}]
-        end
-      end)
+      |> Enum.map(fn %{"route" => route_id} -> route_id end)
 
-    params = trips ++ routes
+    Logger.info(
+      "affected_trips_and_routes alert_id=#{alert_id} trips=#{inspect(trips)} routes=#{inspect(routes)}"
+    )
 
-    if params == [], do: Logger.warning("no_affected_trip_or_routes alert_id=#{alert_id}")
-
-    params
-    |> Enum.flat_map(&Enum.map(period_params, fn params -> Map.merge(params, &1) end))
+    [trips: trips, routes: routes]
+    |> Enum.flat_map(fn
+      {_, []} -> []
+      {key, values} -> Enum.map(period_params, &Map.put(&1, key, values))
+    end)
     |> Enum.map(&MbtaClient.get_schedules/1)
     |> Enum.map(fn {:ok, schedules} -> schedules end)
-    |> Enum.reduce(%{}, &Map.merge(&1, &2))
+    |> Enum.reduce(%{}, &Map.merge/2)
   end
 
   @doc """
