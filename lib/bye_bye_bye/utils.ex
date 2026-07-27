@@ -95,9 +95,9 @@ defmodule ByeByeBye.Utils do
     trips =
       alert["attributes"]["informed_entity"]
       |> Enum.filter(fn entity -> !entity["stop"] && entity["trip"] end)
-      |> Enum.map(fn %{"trip" => trip} ->
-        Logger.info("trip #{trip} affected by alert #{alert_id}")
-        trip
+      |> Enum.map(fn %{"trip" => trip_id} ->
+        Logger.info("affected_trip trip_id=#{trip_id} alert_id=#{alert_id}")
+        trip_id
       end)
       |> then(fn trips ->
         case trips do
@@ -109,9 +109,9 @@ defmodule ByeByeBye.Utils do
     routes =
       alert["attributes"]["informed_entity"]
       |> Enum.filter(fn entity -> !entity["stop"] && !entity["trip"] && entity["route"] end)
-      |> Enum.map(fn %{"route" => route} ->
-        Logger.info("route #{route} affected by alert #{alert_id}")
-        route
+      |> Enum.map(fn %{"route" => route_id} ->
+        Logger.info("affected_route route_id=#{route_id} alert_id=#{alert_id}")
+        route_id
       end)
       |> then(fn routes ->
         case routes do
@@ -122,7 +122,7 @@ defmodule ByeByeBye.Utils do
 
     params = trips ++ routes
 
-    if params == [], do: Logger.warning("no affected trips or routes for alert #{alert_id}")
+    if params == [], do: Logger.warning("no_affected_trip_or_routes alert_id=#{alert_id}")
 
     params
     |> Enum.flat_map(&Enum.map(period_params, fn params -> Map.merge(params, &1) end))
