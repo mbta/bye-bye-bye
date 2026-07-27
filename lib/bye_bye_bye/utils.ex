@@ -103,7 +103,7 @@ defmodule ByeByeBye.Utils do
       |> Enum.map(fn %{"route" => route_id} -> route_id end)
 
     Logger.info(
-      "affected_trips_and_routes alert_id=#{alert_id} trips=#{inspect(trips)} routes=#{inspect(routes)}"
+      "event=affected_trips_and_routes alert_id=#{alert_id} trips=#{inspect(trips)} routes=#{inspect(routes)}"
     )
 
     [trips: trips, routes: routes]
