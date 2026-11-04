@@ -22,8 +22,8 @@ defmodule ByeByeBye.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:protox, "~> 1.7"},
-      {:req, "~> 0.5.8"},
+      {:protox, "~> 2.1"},
+      {:req, "~> 0.7"},
       {:tz, "~> 0.28.1"},
       {:ex_aws, "~> 2.7"},
       {:ex_aws_s3, "~> 2.5"},
