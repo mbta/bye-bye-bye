@@ -126,5 +126,6 @@ defmodule ByeByeBye.MbtaClient do
   defp request_options(opts) do
     opts = Keyword.put(opts, :headers, [{"x-api-key", Config.mbta_api_key()}])
     opts = opts ++ Application.get_env(:bye_bye_bye, :mbta_client_extra_opts, [])
+    opts
   end
 end

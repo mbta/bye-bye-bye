@@ -65,7 +65,7 @@ defmodule ByeByeBye do
 
   defp encode_feeds(message) do
     with {:ok, json} <- message |> Utils.protox_struct_to_map() |> Jason.encode(),
-         {:ok, pb} <- FeedMessage.encode(message),
+         {:ok, pb, _size} <- FeedMessage.encode(message),
          json = IO.iodata_to_binary(json),
          pb = IO.iodata_to_binary(pb) do
       {json, pb}
