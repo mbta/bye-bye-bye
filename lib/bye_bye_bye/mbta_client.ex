@@ -125,11 +125,6 @@ defmodule ByeByeBye.MbtaClient do
 
   defp request_options(opts) do
     opts = Keyword.put(opts, :headers, [{"x-api-key", Config.mbta_api_key()}])
-
-    if Mix.env() == :test do
-      opts ++ [plug: {Req.Test, :mbta_api}, retry: false]
-    else
-      opts
-    end
+    opts = opts ++ Application.get_env(:bye_bye_bye, :mbta_client_extra_opts, [])
   end
 end
