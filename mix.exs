@@ -22,12 +22,12 @@ defmodule ByeByeBye.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:protox, "~> 1.7"},
-      {:req, "~> 0.5.8"},
+      {:protox, "~> 2.1"},
+      {:req, "~> 0.7"},
       {:tz, "~> 0.28.1"},
-      {:ex_aws, "~> 2.5"},
+      {:ex_aws, "~> 2.7"},
       {:ex_aws_s3, "~> 2.5"},
-      {:hackney, "~> 1.9"},
+      {:hackney, "~> 4.0"},
       {:plug, "~> 1.16", only: :test}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
