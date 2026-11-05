@@ -63,7 +63,7 @@ defmodule ByeByeBye do
     |> ExAws.request()
   end
 
-  defp encode_feeds(message) do
+  def encode_feeds(message) do
     with {:ok, json} <- message |> Utils.protox_struct_to_map() |> Jason.encode(),
          {:ok, pb, _size} <- FeedMessage.encode(message),
          json = IO.iodata_to_binary(json),
